@@ -1,0 +1,25 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+body, html{
+  margin: 0;
+  height: 100%;
+}
+
+#app{
+display: flex;
+justify-content: center;
+align-items: center;
+height: 100vh;
+margin: 0;
+;
+}
+
+canvas{
+  margin: 0;
+  box-sizing: border-box;
+  border: 10px solid gray;
+  /* width: 300px;
+  height: 600px; */
+  /* grid-area: 1 / 1 / 2 / 2; */
+}
