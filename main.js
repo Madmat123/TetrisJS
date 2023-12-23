@@ -54,15 +54,13 @@ let isGamePaused = false;
 
 ctx.strokeStyle = '#000'; // Set the stroke color
 
-console.log(ctx);
-
 canvas.width = 300;
 canvas.height = 600;
 
-const width = canvas.width;
+/* const width = canvas.width;
 const height = canvas.height;
 const columns = 10;
-const rows = 20;
+const rows = 20; */
 const squareSize = 30;
 const boardWidth = 10; // Width of the Tetris board in blocks
 const boardHeight = 20; // Height of the Tetris board in blocks
@@ -72,7 +70,6 @@ let ctxPreview =  canvasPreview.getContext("2d");
 canvasPreview.width = 120;
 canvasPreview.height = 120;
 
-
 let grid = Array.from({ length: boardHeight }, () => Array(boardWidth).fill(0));
 
 let boundingBox = []
@@ -80,9 +77,8 @@ let score = 0;
 let rotation = 0;
 let tetrominoX = 4;
 let tetrominoY = 0;
-let currentX = tetrominoX;
-let currentY = tetrominoY;
 let speed = 700;
+let isGameActive = false;
 
 const scoreDisplay = document.getElementById("score");
 console.log(`scoreDisplay: ${scoreDisplay}`);
@@ -97,17 +93,8 @@ function ActivateNewTetromino(){
     rotation = 0;
     tetrominoX = 4;
     tetrominoY = 0;
-    currentX = tetrominoX;
-    currentY = tetrominoY;
-    speed = 500;
+    speed = 700;
 }
-
-console.log(grid); // Outputs the grid array containing top-left corner coordinates of squares
-
-console.log(TETROMINOS);
-// let tetrominoX = 0;
-// let tetrominoY = 0;
-
 function getRandomTetromino(tetrominos) {
     const randomIndex = Math.floor(Math.random() * tetrominos.length);
     return tetrominos[randomIndex];
@@ -127,7 +114,6 @@ function drawPreview (tetromino){
         }
     }
 }
-
 function drawTetromino(tetromino, rotation, xOffset, yOffset) {
     grid.forEach((vElement, yIndex)=>{
         vElement.forEach((xElement, xIndex)=>{
@@ -216,12 +202,6 @@ function getBoundingBox(tetromino) {
         lastColumn: lastColumn
     };
 }
-
-function SetNewSpeed(s) {
-    speed = s;
-    drawTetromino(currentTetromino, rotation, tetrominoX, tetrominoY);
-}
-
 function addTetrominoToGrid(){
     const newGrid = [];
     let scoreMultiplier = 0;
@@ -244,7 +224,6 @@ function addTetrominoToGrid(){
     grid = newGrid;
     console.log(grid);
 }
-
 function moveTetromino(direction) {          
     if (direction === 'left' && tetrominoX - boundingBox.firstColumn> 0 && validateTetrominoPosition(currentTetromino, rotation, tetrominoX-1, tetrominoY)) {
         clearCanvas();
@@ -263,14 +242,12 @@ function getNextRotation(r) {
         boundingBox = getBoundingBox(currentTetromino[rotation]);
     }
 }    
-
 function rotateTetromino(tetromino) {
     const rotatedTetromino = tetromino[0].map((_, colIndex) =>
         tetromino.map(row => row[colIndex]).reverse()
     );
     return rotatedTetromino;
 }
-
 // Function to generate all rotations for a single tetromino
 function generateRotations(tetromino, rotations = []) {
     rotations.push(tetromino);
@@ -283,7 +260,6 @@ function generateRotations(tetromino, rotations = []) {
     }
     return rotations;
 }
-
 // Function to generate all rotations for an array of tetrominos
 function generateAllRotations(tetrominos) {
     const tetrominosWithRotations = tetrominos.map(tetromino =>
@@ -291,10 +267,6 @@ function generateAllRotations(tetrominos) {
     );
     return tetrominosWithRotations;
 }
-
-// Display the tetrominos with their rotations (for demonstration purposes)
-console.log(tetrominosWithAllRotations);
-
 // Keyboard event listeners
 document.addEventListener('keydown', (event) => {
     if (event.key === 'a' || event.key === 'A') {
@@ -312,22 +284,18 @@ document.getElementById('pause').addEventListener('click', setPause);
 
 // Animation loop with reduced speed
 function animate() {
+    isGameActive = true;
     if (!isGamePaused){
         clearCanvas();
         drawTetromino(currentTetromino, rotation, tetrominoX, tetrominoY);
-        let isPosValid = validateTetrominoPosition(currentTetromino, rotation, tetrominoX, tetrominoY);
-        if(isPosValid ){
+        if(validateTetrominoPosition(currentTetromino, rotation, tetrominoX, tetrominoY) ){
             tetrominoY++; 
-            // Adjust the delay (in milliseconds) to control the falling speed 
-            if (!isGamePaused) {
-                setTimeout(() => {
-                    requestAnimationFrame(animate);
-                }
-            , speed); // Change the delay time here (e.g., 500ms for slower speed)
-            } 
+            setTimeout(() => {
+                requestAnimationFrame(animate);
+            }
+            , speed); 
         }
         else {
-            console.log(`${currentTetromino[rotation]}, x: ${tetrominoX}, y: ${tetrominoY}`);
             addTetrominoToGrid();
             currentTetromino = nextTetromino;
             nextTetromino = getRandomTetromino(tetrominosWithAllRotations);
@@ -346,21 +314,14 @@ function startGame(){
     score = 0;
     currentTetromino = getRandomTetromino(tetrominosWithAllRotations);
     nextTetromino = getRandomTetromino(tetrominosWithAllRotations); 
-    rotation = 0;
-    tetrominoX = 4;
-    tetrominoY = 0;
-    currentX = tetrominoX;
-    currentY = tetrominoY;
-    speed = 700;
-    console.log("Button pressed");
+    ActivateNewTetromino();
     drawPreview(nextTetromino);
     boundingBox = getBoundingBox(currentTetromino[rotation]);
-    console.log("Bounding Box for Tetromino J:", boundingBox.firstRow);
-    requestAnimationFrame(animate);
+    if (!isGameActive) requestAnimationFrame(animate);
 }
 
 function setPause(){
     isGamePaused = !isGamePaused;
     pauseButton.innerHTML = isGamePaused? "Unpause" : "Pause";
-    isGamePaused? true:requestAnimationFrame(animate);
+    if (!isGamePaused) requestAnimationFrame(animate);
 }
